@@ -11,7 +11,7 @@ namespace Otus.Teaching.PromoCodeFactory.Core.Domain.PromoCodeManagement
 
         public string ServiceInfo { get; set; }
 
-        public DateTime BeginDate { get; set; }
+        public DateTime StartDate { get; set; }
 
         public DateTime EndDate { get; set; }
 

@@ -19,5 +19,7 @@ namespace Otus.Teaching.PromoCodeFactory.Core.Abstractions.Repositories
 
         Task DeleteAsync(T entity);
 
+        Task<IEnumerable<T>> GetByExpressionAsync(Expression<Func<T, bool>> predicate);
+
     }
 }

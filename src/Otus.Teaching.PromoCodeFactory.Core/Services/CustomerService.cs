@@ -3,6 +3,7 @@ using Otus.Teaching.PromoCodeFactory.Core.Domain.PromoCodeManagement;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -28,5 +29,17 @@ namespace Otus.Teaching.PromoCodeFactory.Core.Services
 
         public async Task DeleteCustomer(Customer item) => await _customerRepository.DeleteAsync(item);
 
+        public async Task<IEnumerable<Customer>> GetCustomersWithPreferenceAsync(Preference preference)
+        {
+            if (preference == null)
+            {
+                return [];
+            }
+
+            Expression<Func<Customer, bool>> expression = customer =>
+                customer.Preferences.Any(p => p.Id == preference.Id);
+
+            return await _customerRepository.GetByExpressionAsync(expression);
+        }
     }
 }

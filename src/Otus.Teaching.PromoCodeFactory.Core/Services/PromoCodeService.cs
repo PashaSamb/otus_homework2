@@ -1,12 +1,13 @@
 ﻿using Otus.Teaching.PromoCodeFactory.Core.Abstractions.Repositories;
 using Otus.Teaching.PromoCodeFactory.Core.Domain.PromoCodeManagement;
+using Otus.Teaching.PromoCodeFactory.Core.Services.IServices;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Otus.Teaching.PromoCodeFactory.Core.Services
 {
-    public class PromoCodeService
+    public class PromoCodeService : IPromoCodeService
     {
         private readonly IRepository<PromoCode> _promocodeRepository;
 
@@ -24,5 +25,6 @@ namespace Otus.Teaching.PromoCodeFactory.Core.Services
         public async Task UpdatePromoCode(PromoCode item) => await _promocodeRepository.UpdateAsync(item);
 
         public async Task DeletePromoCode(PromoCode item) => await _promocodeRepository.DeleteAsync(item);
+     
     }
 }

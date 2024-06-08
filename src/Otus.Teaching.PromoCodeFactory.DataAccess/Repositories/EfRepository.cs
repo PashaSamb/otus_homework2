@@ -11,13 +11,18 @@ using System.Threading.Tasks;
 
 namespace Otus.Teaching.PromoCodeFactory.DataAccess.Repositories
 {
-    public class EfRepository<T>(ApplicationDbContext _context) : IRepository<T>
-    where T : BaseEntity
+    public class EfRepository<T> : IRepository<T> where T : BaseEntity
     {
+        private readonly ApplicationDbContext _context;
+
+        public EfRepository(ApplicationDbContext context)
+        {
+            _context = context;
+        }
 
         public async Task<IEnumerable<T>> GetAllAsync()
         {
-           return await _context.Set<T>().ToListAsync();
+            return await _context.Set<T>().AsNoTracking().ToListAsync();
         }
 
         public async Task<T> GetByIdAsync(Guid id)
@@ -45,6 +50,10 @@ namespace Otus.Teaching.PromoCodeFactory.DataAccess.Repositories
             _context.Set<T>().Remove(entity);
             await _context.SaveChangesAsync();
         }
-      
+
+        public async Task<IEnumerable<T>> GetByExpressionAsync(Expression<Func<T, bool>> predicate)
+        {
+            return await _context.Set<T>().AsNoTracking().Where(predicate).ToListAsync();
+        }
     }
 }

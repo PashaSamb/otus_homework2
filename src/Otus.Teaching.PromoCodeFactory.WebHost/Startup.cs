@@ -13,6 +13,7 @@ using Otus.Teaching.PromoCodeFactory.Core.Abstractions.Repositories;
 using Otus.Teaching.PromoCodeFactory.Core.Domain.Administration;
 using Otus.Teaching.PromoCodeFactory.Core.Domain.PromoCodeManagement;
 using Otus.Teaching.PromoCodeFactory.Core.Services;
+using Otus.Teaching.PromoCodeFactory.Core.Services.IServices;
 using Otus.Teaching.PromoCodeFactory.DataAccess.Data;
 using Otus.Teaching.PromoCodeFactory.DataAccess.Repositories;
 using Otus.Teaching.RoleFactory.Core.Services;
@@ -51,8 +52,10 @@ namespace Otus.Teaching.PromoCodeFactory.WebHost
             services.AddScoped<CustomerService>();
             services.AddScoped<EmployeeService>();
             services.AddScoped<PreferenceService>();
-            services.AddScoped<PromoCodeService>();
+           
             services.AddScoped<RoleService>();
+
+            services.AddScoped<IPromoCodeService, PromoCodeService>();
 
             services.AddOpenApiDocument(options =>
             {

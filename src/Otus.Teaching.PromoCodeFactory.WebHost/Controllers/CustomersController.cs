@@ -17,12 +17,18 @@ namespace Otus.Teaching.PromoCodeFactory.WebHost.Controllers
     public class CustomersController : ControllerBase
     {
         private readonly CustomerService _customerService;
+        private readonly PreferenceService _preferenceService;
 
-        public CustomersController(CustomerService customerService)
+        public CustomersController(CustomerService customerService, PreferenceService  preferenceService)
         {
-             _customerService = customerService;
+            _customerService = customerService;
+            _preferenceService = preferenceService;
         }
 
+        /// <summary>
+        ///  Получение списка пользователей
+        /// </summary>
+      
         [HttpGet]
         public async Task<ActionResult<CustomerShortResponse>> GetCustomersAsync()
         {
@@ -39,6 +45,12 @@ namespace Otus.Teaching.PromoCodeFactory.WebHost.Controllers
 
             return Ok(response);
         }
+
+        /// <summary>
+        /// Получение пользователя по id
+        /// </summary>
+        /// <param name="id"></param>
+
         
         [HttpGet("{id}")]
         public async Task<ActionResult<CustomerResponse>> GetCustomerAsync(Guid id)
@@ -59,7 +71,7 @@ namespace Otus.Teaching.PromoCodeFactory.WebHost.Controllers
                 {
                     Id = x.Id,
                     Code = x.Code,
-                    BeginDate = x.BeginDate.ToLongDateString(),
+                    BeginDate = x.StartDate.ToLongDateString(),
                     EndDate = x.EndDate.ToLongDateString()
                 }).ToList(),
 
@@ -73,37 +85,80 @@ namespace Otus.Teaching.PromoCodeFactory.WebHost.Controllers
             return Ok(response);
         }
 
+        /// <summary>
+        /// Создать пользователя
+        /// </summary>
+        /// <param name="request"></param>
+
         [HttpPost]
         public async Task<IActionResult> CreateCustomerAsync(CreateOrEditCustomerRequest request)
         {
-            //TODO: Добавить создание нового клиента вместе с его предпочтениями
-            //throw new NotImplementedException();
-
-            var newCustomer = new Customer()
+            var customer = new Customer
             {
+                Id = Guid.NewGuid(),
                 FirstName = request.FirstName,
                 LastName = request.LastName,
                 Email = request.Email
-               // Preferences.
-
-                /*      Preferences = request.PreferenceIds?.Select(x => new CustomerPreference()
-                      {
-                          PreferenceId = x
-                      }).ToList()*/
             };
 
-            var created = await _customerService.AddCustomerAsync(newCustomer);
+            // Create or add preferences
+            var preferences = await _preferenceService.GetPreferencesAsync(request.PreferenceIds);
 
-            return CreatedAtAction("GetCustomerAsync",created.Id);
+            foreach (var preference in preferences)
+            {
+                customer.Preferences.Add(preference);
+            }
+
+            await _customerService.AddCustomerAsync(customer);
+            return CreatedAtAction(nameof(GetCustomerAsync), new { id = customer.Id }, customer);
         }
-        
+
+        /// <summary>
+        /// Изменить данные пользователя
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="request"></param>
+
         [HttpPut("{id}")]
-        public Task<IActionResult> EditCustomersAsync(Guid id, CreateOrEditCustomerRequest request)
+        public async Task<IActionResult> EditCustomersAsync(Guid id, CreateOrEditCustomerRequest request)
         {
-            //TODO: Обновить данные клиента вместе с его предпочтениями
-            throw new NotImplementedException();
+            var customer = await _customerService.GetCustomerByIdAsync(id);
+
+            if (customer == null)
+            {
+                return NotFound($"Customer not found with id: {id}");
+            }
+
+            customer.FirstName = request.FirstName;
+            customer.LastName = request.LastName;
+            customer.Email = request.Email;
+
+            // Update or add preferences
+            var existingPreferences = customer.Preferences;
+            var newPreferences = await _preferenceService.GetPreferencesAsync(request.PreferenceIds);
+
+            foreach (var preference in newPreferences)
+            {
+                if (!existingPreferences.Any(e => e.Id == preference.Id))
+                {
+                    customer.Preferences.Add(preference);
+                }
+            }
+
+            if (id != customer.Id)
+            {
+                return BadRequest("This customer cannot be modified");
+            }
+
+            await _customerService.UpdateCustomer(customer);
+            return NoContent();
         }
         
+        /// <summary>
+        /// Удалить пользователя по id
+        /// </summary>
+        /// <param name="id"></param>
+
         [HttpDelete]
         public async Task<IActionResult> DeleteCustomer(Guid id)
         {
